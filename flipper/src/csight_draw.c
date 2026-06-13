@@ -278,9 +278,8 @@ void csight_draw_waterfall(Canvas* c, CSIghtApp* app) {
     canvas_draw_line(c, 0, 10, SCREEN_W, 10);
 
     // Draw waterfall: newest on right, oldest on left
-    // Each column = 1px wide, 40px tall
+    // Each column = 1px wide, fills from draw_y_start to bottom
     int draw_y_start = 12;
-    int draw_h = SCREEN_H - draw_y_start - 2;
 
     for (int col = 0; col < WATERFALL_COLS; col++) {
         // Map write col so newest = rightmost
