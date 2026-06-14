@@ -1,10 +1,76 @@
 #include "csight.h"
-#include <storage/storage.h>
 
 #define TAG         "CSIght"
 #define CONFIG_PATH EXT_PATH("apps_data/csight/config.bin")
 
-// ─── Config struct (saved to SD) ─────────────────────────────────────────────
+// ─── Board presets — defined here, extern'd in header ─────────────────────────
+const BoardPreset BOARD_PRESETS[] = {
+    // ── Official Flipper expansion boards ─────────────────────────────────────
+    { "FZ WiFi Dev Board",        1,  3,  1 },
+    { "FZ WiFi Dev Board Pro",    1,  3,  1 },
+    { "FlipMods Mini WiFi",       1,  3,  1 },
+    { "FlipMods Combo",          15, 16,  1 },
+    { "FEBERIS (BPM Circuits)",   1,  3,  1 },
+    { "Marauder DblBarrel 5G",   15, 16,  1 },
+
+    // ── Espressif DevKits ─────────────────────────────────────────────────────
+    { "ESP32 DevKit V1",          1,  3,  1 },
+    { "ESP32 DevKit V4",          1,  3,  1 },
+    { "ESP32-S3 DevKitC-1",      43, 44,  2 },
+    { "ESP32-S3 DevKitM-1",      43, 44,  2 },
+    { "ESP32-C3 DevKitC-02",     21, 20,  2 },
+    { "ESP32-C3 DevKitM-1",      21, 20,  2 },
+    { "ESP32-C6 DevKitC-1",      16, 17,  2 },
+    { "ESP32-C6 DevKitM-1",      16, 17,  2 },
+    { "ESP32-C61 DevKitC-1",     16, 17,  2 },
+
+    // ── Seeed XIAO ────────────────────────────────────────────────────────────
+    { "XIAO ESP32-C3",            21, 20,  2 },
+    { "XIAO ESP32-S3",            43, 44,  2 },
+    { "XIAO ESP32-C6",            16, 17,  2 },
+
+    // ── Adafruit ──────────────────────────────────────────────────────────────
+    { "Adafruit ESP32 Feather",    1,  3,  1 },
+    { "Adafruit QT Py ESP32-S3",  43, 44,  2 },
+    { "Adafruit QT Py ESP32-C3",  21, 20,  2 },
+
+    // ── SparkFun ──────────────────────────────────────────────────────────────
+    { "SparkFun ESP32 Thing",      1,  3,  1 },
+    { "SparkFun ESP32-S2 Thing",   0,  0,  0 },
+    { "SparkFun C6 Qwiic Pocket",  16, 17,  2 },
+
+    // ── Lolin / WEMOS ─────────────────────────────────────────────────────────
+    { "LOLIN D32",                 1,  3,  1 },
+    { "LOLIN D32 Pro",             1,  3,  1 },
+    { "WEMOS D1 Mini32",           1,  3,  1 },
+    { "LOLIN S3",                 43, 44,  2 },
+    { "LOLIN C3 Mini",            21, 20,  2 },
+
+    // ── AI-Thinker ────────────────────────────────────────────────────────────
+    { "AI-Thinker ESP32-CAM",      1,  3,  1 },
+    { "NodeMCU-32S",               1,  3,  1 },
+
+    // ── M5Stack ───────────────────────────────────────────────────────────────
+    { "M5Stack Core",              1,  3,  1 },
+    { "M5Stack Core2",             1,  3,  1 },
+    { "M5Stamp C3",               21, 20,  2 },
+    { "M5Stamp S3",               43, 44,  2 },
+
+    // ── Unexpected Maker ──────────────────────────────────────────────────────
+    { "TinyS3",                   43, 44,  2 },
+    { "FeatherS3",                43, 44,  2 },
+    { "ProS3",                    43, 44,  2 },
+
+    // ── Olimex ────────────────────────────────────────────────────────────────
+    { "Olimex ESP32-EVB",          1,  3,  1 },
+    { "Olimex ESP32-S3-DevKit",   43, 44,  2 },
+
+    // ── Custom ────────────────────────────────────────────────────────────────
+    { "Custom...",                 0,  0,  0 },
+};
+const int BOARD_PRESET_COUNT = (int)(sizeof(BOARD_PRESETS) / sizeof(BOARD_PRESETS[0]));
+
+// ─── Config struct ────────────────────────────────────────────────────────────
 typedef struct {
     uint8_t preset_idx;
     uint8_t tx_pin;
@@ -20,7 +86,7 @@ void csight_config_save(CSIghtApp* app) {
     storage_simply_mkdir(storage, EXT_PATH("apps_data/csight"));
 
     File* file = storage_file_alloc(storage);
-    if (storage_file_open(file, CONFIG_PATH, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
+    if(storage_file_open(file, CONFIG_PATH, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
         CSIghtConfig cfg = {
             .preset_idx   = app->preset_idx,
             .tx_pin       = app->tx_pin,
@@ -33,33 +99,28 @@ void csight_config_save(CSIghtApp* app) {
     storage_file_close(file);
     storage_file_free(file);
     furi_record_close(RECORD_STORAGE);
-    FURI_LOG_I(TAG, "Config saved");
 }
 
 void csight_config_load(CSIghtApp* app) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
     File* file = storage_file_alloc(storage);
 
-    if (storage_file_open(file, CONFIG_PATH, FSAM_READ, FSOM_OPEN_EXISTING)) {
+    if(storage_file_open(file, CONFIG_PATH, FSAM_READ, FSOM_OPEN_EXISTING)) {
         CSIghtConfig cfg;
-        if (storage_file_read(file, &cfg, sizeof(cfg)) == sizeof(cfg)) {
-            app->preset_idx   = cfg.preset_idx < BOARD_PRESET_COUNT ? cfg.preset_idx : 0;
+        if(storage_file_read(file, &cfg, sizeof(cfg)) == sizeof(cfg)) {
+            app->preset_idx   = cfg.preset_idx < (uint8_t)BOARD_PRESET_COUNT ? cfg.preset_idx : 0;
             app->tx_pin       = cfg.tx_pin  ? cfg.tx_pin  : 13;
             app->rx_pin       = cfg.rx_pin  ? cfg.rx_pin  : 14;
             app->sensitivity  = cfg.sensitivity <= 10 ? cfg.sensitivity : 5;
-            app->display_mode = cfg.display_mode <= DisplayModeProximity ?
+            app->display_mode = cfg.display_mode <= (uint8_t)DisplayModeProximity ?
                                 (DisplayMode)cfg.display_mode : DisplayModeRadar;
-            FURI_LOG_I(TAG, "Config loaded: preset=%d tx=%d rx=%d",
-                       app->preset_idx, app->tx_pin, app->rx_pin);
         }
     } else {
-        // Defaults
-        app->preset_idx  = 0;
-        app->tx_pin      = 13;
-        app->rx_pin      = 14;
-        app->sensitivity = 5;
+        app->preset_idx   = 0;
+        app->tx_pin       = 13;
+        app->rx_pin       = 14;
+        app->sensitivity  = 5;
         app->display_mode = DisplayModeRadar;
-        FURI_LOG_I(TAG, "No config found, using defaults");
     }
 
     storage_file_close(file);
@@ -69,84 +130,66 @@ void csight_config_load(CSIghtApp* app) {
 
 // ─── Blip logic ───────────────────────────────────────────────────────────────
 void csight_add_blip(CSIghtApp* app, uint8_t intensity, uint8_t proximity) {
-    // Find oldest slot
     int oldest = 0;
-    for (int i = 1; i < MAX_BLIPS; i++) {
-        if (app->blips[i].age < app->blips[oldest].age) oldest = i;
+    for(int i = 1; i < MAX_BLIPS; i++) {
+        if(app->blips[i].age < app->blips[oldest].age) oldest = i;
     }
 
-    // Place blip near current sweep angle, distance based on proximity
-    // proximity 0-100: 0=far edge, 100=center
-    uint8_t a = app->sweep_angle & 63;
-    // Extern trig lookup — use sweep angle with small random jitter
-    // (jitter = low bits of intensity to vary blip placement slightly)
+    uint8_t a  = app->sweep_angle & 63;
     uint8_t ja = (a + (intensity & 3)) & 63;
+    int dist   = 2 + ((100 - proximity) * (RADAR_R - 4)) / 100;
 
-    // distance from center: proximity 100 → r=2, proximity 0 → r=RADAR_R-2
-    int dist = 2 + ((100 - proximity) * (RADAR_R - 4)) / 100;
-
-    extern const int8_t SIN64[64];
-    extern const int8_t COS64[64];
     app->blips[oldest].x         = (int8_t)((COS64[ja] * dist) / 59);
     app->blips[oldest].y         = (int8_t)((SIN64[ja] * dist) / 59);
     app->blips[oldest].age       = 255;
     app->blips[oldest].intensity = intensity;
 }
 
-// ─── Tick — called from timer, ages blips + advances sweep ───────────────────
+// ─── Tick ─────────────────────────────────────────────────────────────────────
 void csight_tick(CSIghtApp* app) {
-    // Advance sweep
     app->sweep_angle = (app->sweep_angle + 1) & 63;
 
-    // Age blips
-    for (int i = 0; i < MAX_BLIPS; i++) {
-        if (app->blips[i].age > 0) {
-            app->blips[i].age -= 2;
-        }
+    for(int i = 0; i < MAX_BLIPS; i++) {
+        if(app->blips[i].age > 0) app->blips[i].age -= 2;
     }
 
-    // Boot animation frame
-    if (app->state == AppStateBooting) {
+    if(app->state == AppStateBooting) {
         app->boot_frame++;
-        if (app->boot_frame > 40) {
-            // Send handshake after boot animation
+        if(app->boot_frame > 40) {
             csight_send_handshake(app);
-            app->state = AppStateConnecting;
+            app->state      = AppStateConnecting;
             app->boot_frame = 0;
         }
     }
 
-    // Connecting timeout — if no handshake after ~3s, go to preset select
-    if (app->state == AppStateConnecting) {
+    if(app->state == AppStateConnecting) {
         app->boot_frame++;
-        if (app->boot_frame > 90) {
-            app->state = AppStatePresetSelect;
+        if(app->boot_frame > 90) {
+            app->state      = AppStatePresetSelect;
             app->boot_frame = 0;
         }
     }
 }
 
-// ─── Input handling ───────────────────────────────────────────────────────────
+// ─── Input ────────────────────────────────────────────────────────────────────
 static void handle_input(CSIghtApp* app, InputKey key, InputType type) {
-    if (type != InputTypeShort && type != InputTypeLong) return;
+    if(type != InputTypeShort && type != InputTypeLong) return;
 
-    switch (app->state) {
+    switch(app->state) {
 
         case AppStateCompatCheck:
-            if (key == InputKeyOk) {
-                if (app->csi_support > 0) {
-                    app->state = AppStatePresetSelect;
-                }
+            if(key == InputKeyOk && app->csi_support > 0) {
+                app->state = AppStatePresetSelect;
             }
             break;
 
         case AppStatePresetSelect:
-            if (key == InputKeyUp && app->preset_idx > 0) {
+            if(key == InputKeyUp && app->preset_idx > 0) {
                 app->preset_idx--;
-            } else if (key == InputKeyDown && app->preset_idx < BOARD_PRESET_COUNT - 1) {
+            } else if(key == InputKeyDown && app->preset_idx < (uint8_t)(BOARD_PRESET_COUNT - 1)) {
                 app->preset_idx++;
-            } else if (key == InputKeyOk) {
-                if (app->preset_idx != BOARD_PRESET_CUSTOM) {
+            } else if(key == InputKeyOk) {
+                if(app->preset_idx != (uint8_t)BOARD_PRESET_CUSTOM) {
                     app->tx_pin = BOARD_PRESETS[app->preset_idx].tx_pin;
                     app->rx_pin = BOARD_PRESETS[app->preset_idx].rx_pin;
                     csight_config_save(app);
@@ -159,10 +202,9 @@ static void handle_input(CSIghtApp* app, InputKey key, InputType type) {
             break;
 
         case AppStatePinConfig:
-            // Simple: up/down adjusts TX pin, OK saves + starts
-            if (key == InputKeyUp   && app->tx_pin < 39) app->tx_pin++;
-            if (key == InputKeyDown && app->tx_pin > 0)  app->tx_pin--;
-            if (key == InputKeyOk) {
+            if(key == InputKeyUp   && app->tx_pin < 39) app->tx_pin++;
+            if(key == InputKeyDown && app->tx_pin > 0)  app->tx_pin--;
+            if(key == InputKeyOk) {
                 csight_config_save(app);
                 app->state = AppStateScanning;
                 csight_send_handshake(app);
@@ -170,20 +212,18 @@ static void handle_input(CSIghtApp* app, InputKey key, InputType type) {
             break;
 
         case AppStateScanning:
-            // Left/Right = switch display mode
-            if (key == InputKeyLeft) {
-                app->display_mode = (app->display_mode + 2) % 3;
+            if(key == InputKeyLeft) {
+                app->display_mode = (DisplayMode)((app->display_mode + 2) % 3);
                 csight_send_mode(app);
-            } else if (key == InputKeyRight) {
-                app->display_mode = (app->display_mode + 1) % 3;
+            } else if(key == InputKeyRight) {
+                app->display_mode = (DisplayMode)((app->display_mode + 1) % 3);
                 csight_send_mode(app);
             }
-            // Up/Down = sensitivity
-            if (key == InputKeyUp   && app->sensitivity < 10) {
+            if(key == InputKeyUp && app->sensitivity < 10) {
                 app->sensitivity++;
                 csight_send_sensitivity(app);
             }
-            if (key == InputKeyDown && app->sensitivity > 0) {
+            if(key == InputKeyDown && app->sensitivity > 0) {
                 app->sensitivity--;
                 csight_send_sensitivity(app);
             }
@@ -198,7 +238,7 @@ static void handle_input(CSIghtApp* app, InputKey key, InputType type) {
 static void draw_cb(Canvas* c, void* ctx) {
     CSIghtApp* app = (CSIghtApp*)ctx;
 
-    switch (app->state) {
+    switch(app->state) {
         case AppStateBooting:
         case AppStateConnecting:
             csight_draw_boot(c, app);
@@ -211,11 +251,14 @@ static void draw_cb(Canvas* c, void* ctx) {
             csight_draw_preset(c, app);
             break;
         case AppStateScanning:
-            switch (app->display_mode) {
+            switch(app->display_mode) {
                 case DisplayModeRadar:     csight_draw_radar(c, app);     break;
                 case DisplayModeWaterfall: csight_draw_waterfall(c, app); break;
                 case DisplayModeProximity: csight_draw_proximity(c, app); break;
+                default:                   csight_draw_radar(c, app);     break;
             }
+            break;
+        default:
             break;
     }
 }
@@ -265,22 +308,18 @@ void csight_app_free(CSIghtApp* app) {
     free(app);
 }
 
-// ─── Entry point ─────────────────────────────────────────────────────────────
+// ─── Entry point ──────────────────────────────────────────────────────────────
 int32_t csight_app(void* p) {
     UNUSED(p);
     CSIghtApp* app = csight_app_alloc();
 
-    // 30fps tick timer
     FuriTimer* timer = furi_timer_alloc(timer_cb, FuriTimerTypePeriodic, app);
     furi_timer_start(timer, furi_kernel_get_tick_frequency() / 30);
 
-    // Main loop
     InputEvent event;
-    while (1) {
-        if (furi_message_queue_get(app->event_queue, &event, 10) == FuriStatusOk) {
-            if (event.key == InputKeyBack && event.type == InputTypeShort) {
-                break; // exit app
-            }
+    while(1) {
+        if(furi_message_queue_get(app->event_queue, &event, 10) == FuriStatusOk) {
+            if(event.key == InputKeyBack && event.type == InputTypeShort) break;
             handle_input(app, event.key, event.type);
         }
     }
