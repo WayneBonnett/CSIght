@@ -8,6 +8,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/joelewis012/CSIght?style=flat-square&color=green&label=Latest%20Release)](https://github.com/joelewis012/CSIght/releases/latest)
+[![Stars](https://img.shields.io/github/stars/joelewis012/CSIght?style=flat-square&color=yellow)](https://github.com/joelewis012/CSIght/stargazers)
+[![Forks](https://img.shields.io/github/forks/joelewis012/CSIght?style=flat-square&color=blue)](https://github.com/joelewis012/CSIght/network/members)
 [![Firmware: Official](https://img.shields.io/badge/firmware-Official-blue?style=flat-square)]()
 [![Firmware: Momentum](https://img.shields.io/badge/firmware-Momentum-purple?style=flat-square)]()
 [![Firmware: Unleashed](https://img.shields.io/badge/firmware-Unleashed-red?style=flat-square)]()
@@ -184,6 +186,20 @@ ufbt
 |-------|---------------------------------------------------|
 |v1.x   |Breathing detection (experimental)                 |
 |v2.0   |Multi-ESP32 node support for true directional radar|
+
+-----
+
+## Legal
+
+CSIght is intended for use on hardware you own, in spaces you have permission to monitor. WiFi CSI reads signal metadata from your own radio hardware — it does not intercept, decode, or store anyone’s network traffic or communications.
+
+**You are responsible for ensuring your use of CSIght complies with the laws of your country and region.** In particular:
+
+- Do not use CSIght to monitor people in spaces without their knowledge or consent
+- Do not use CSIght in jurisdictions where passive RF sensing is restricted
+- The authors accept no liability for misuse of this software
+
+This project is provided in good faith for hobbyist, research, and educational purposes.
 
 -----
 
