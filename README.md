@@ -68,29 +68,40 @@ Switch modes with `←` / `→` during scanning.
 
 ## Compatibility
 
-### ESP32 chips
+### ESP32 firmware — which folder is mine?
 
-|Chip            |CSI Support|Notes                                       |
-|----------------|-----------|--------------------------------------------|
-|ESP32-S3        |✅ Full     |Recommended                                 |
-|ESP32-C3        |✅ Full     |Great budget option                         |
-|ESP32-C6        |✅ Full     |WiFi 6, best sensitivity                    |
-|ESP32-C61       |✅ Full     |C6 without 802.15.4                         |
-|ESP32 (original)|⚠️ Limited  |Amplitude only, motion detection still works|
-|ESP32-S2        |❌ None     |No WiFi CSI support                         |
-|ESP32-H2        |❌ None     |802.15.4 only, no WiFi                      |
+|Firmware folder |Chip            |Boards                                                                                                                                                                                                                                                                                                                                                              |
+|----------------|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|`esp32/esp32/`  |ESP32 (original)|ESP32-WROOM-32, ESP32-WROOM-32U, ESP32-WROOM-32UE, ESP32-WROVER, ESP32-WROVER-B, NodeMCU-32S, FZ WiFi Dev Board, FZ WiFi Dev Board Pro, FlipMods Mini WiFi, FlipMods Combo, FEBERIS, Marauder Double Barrel, AI-Thinker ESP32-CAM, LOLIN D32, LOLIN D32 Pro, WEMOS D1 Mini32, Adafruit HUZZAH32, SparkFun ESP32 Thing, M5Stack Core, M5Stack Core2, Olimex ESP32-EVB|
+|`esp32/esp32s3/`|ESP32-S3        |ESP32-S3 DevKitC-1, ESP32-S3 DevKitM-1, XIAO ESP32-S3, LOLIN S3, TinyS3, FeatherS3, ProS3, Adafruit QT Py ESP32-S3, M5Stamp S3, Olimex ESP32-S3-DevKit                                                                                                                                                                                                              |
+|`esp32/esp32c3/`|ESP32-C3        |ESP32-C3 DevKitC-02, ESP32-C3 DevKitM-1, XIAO ESP32-C3, LOLIN C3 Mini, Adafruit QT Py ESP32-C3, M5Stamp C3, SparkFun ESP32-C3                                                                                                                                                                                                                                       |
+|`esp32/esp32c6/`|ESP32-C6        |ESP32-C6 DevKitC-1, ESP32-C6 DevKitM-1, ESP32-C61 DevKitC-1, XIAO ESP32-C6, SparkFun C6 Qwiic Pocket                                                                                                                                                                                                                                                                |
+
+### CSI quality by chip
+
+|Chip                       |CSI Support  |Notes                                         |
+|---------------------------|-------------|----------------------------------------------|
+|ESP32-C6                   |✅ Full       |WiFi 6, excellent sensitivity                 |
+|ESP32-C61                  |✅ Full       |C6 without 802.15.4                           |
+|ESP32-C3                   |✅ Full       |Great budget option                           |
+|ESP32-S3                   |✅ Full       |Recommended all-rounder                       |
+|ESP32 (original)           |⚠️ Limited    |Motion detection works, proximity less precise|
+|ESP32-WROOM-32 / 32U / 32UE|⚠️ Limited    |Same original ESP32 chip, amplitude only      |
+|ESP32-S2                   |❌ None       |No WiFi CSI support                           |
+|ESP32-H2                   |❌ None       |802.15.4 only, no WiFi                        |
+|ESP32-C5                   |🔜 Coming soon|Requires ESP-IDF v5.5 — not yet supported     |
 
 
-> **Full** = amplitude + phase across all subcarriers → better proximity accuracy
-> **Limited** = amplitude only → motion detection works, proximity less precise
+> **Full** = amplitude + phase across all subcarriers → best accuracy
+> **Limited** = amplitude only → motion detection still works fine
 
-### Flipper firmware
+### Flipper firmware — which FAP is mine?
 
-|Firmware |Status|
-|---------|------|
-|Official |✅     |
-|Momentum |✅     |
-|Unleashed|✅     |
+|FAP folder          |Use if you run        |
+|--------------------|----------------------|
+|`flipper/official/` |Stock Flipper firmware|
+|`flipper/momentum/` |Momentum firmware     |
+|`flipper/unleashed/`|Unleashed firmware    |
 
 -----
 
@@ -115,14 +126,14 @@ Grab the latest release ZIP from the [Releases page](https://github.com/joelewis
 ```
 CSIght/
 ├── flipper/
-│   ├── official/    csight.fap
-│   ├── momentum/    csight.fap
-│   └── unleashed/   csight.fap
+│   ├── official/     csight.fap  ← stock firmware
+│   ├── momentum/     csight.fap  ← Momentum firmware
+│   └── unleashed/    csight.fap  ← Unleashed firmware
 └── esp32/
-    ├── bootloader.bin
-    ├── partition-table.bin
-    ├── csight_esp32.bin
-    └── flash_args
+    ├── esp32/        ← WROOM-32, NodeMCU, most 3-in-1 boards
+    ├── esp32s3/      ← S3 DevKit, XIAO-S3, TinyS3
+    ├── esp32c3/      ← C3 Mini, XIAO-C3
+    └── esp32c6/      ← C6 DevKit, XIAO-C6
 ```
 
 ### 2. Flash the ESP32

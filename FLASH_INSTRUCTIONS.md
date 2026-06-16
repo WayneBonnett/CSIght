@@ -3,103 +3,98 @@
 ## ⚠️ Read before flashing
 
 - **Never** interrupt power during flashing
-- **Never** modify the `bootloader.bin` partition manually
-- If something goes wrong, the ESP32 can almost always be recovered — see Recovery below
+- **Never** modify bootloader partitions manually
+- If something goes wrong the ESP32 can almost always be recovered — see Recovery below
 
 ---
 
-## What you need
+## Step 1 — Find your chip
 
-- ESP32 board (any variant — see compatibility list in README)
-- USB cable (data capable, not charge-only)
-- Python 3.7+ installed
-- `esptool.py` — install with: `pip install esptool`
-
----
-
-## Compatibility
-
-| Chip       | CSI Support | Notes                        |
-|------------|-------------|------------------------------|
-| ESP32      | Limited     | Older CSI API, still works   |
-| ESP32-S3   | Full        | Recommended                  |
-| ESP32-C3   | Full        | Good budget option           |
-| ESP32-C6   | Full        | Best WiFi 6 support          |
-| ESP32-S2   | None        | No WiFi CSI — not compatible |
-| ESP32-H2   | None        | 802.15.4 only — not compatible |
+| Your board | Chip | Firmware folder |
+|------------|------|-----------------|
+| FZ WiFi Dev Board, FlipMods, FEBERIS, Marauder, any ESP32-WROOM-32 | ESP32 | `esp32/esp32/` |
+| ESP32-S3 DevKit, XIAO-S3, TinyS3, FeatherS3 | ESP32-S3 | `esp32/esp32s3/` |
+| ESP32-C3 Mini, XIAO-C3, LOLIN C3 | ESP32-C3 | `esp32/esp32c3/` |
+| ESP32-C6 DevKit, XIAO-C6 | ESP32-C6 | `esp32/esp32c6/` |
 
 ---
 
-## Flashing
-
-1. Download the release ZIP and extract it
-2. Open a terminal in the `esp32/` folder
-3. Put your ESP32 into flash mode:
-   - Hold **BOOT** button, press **EN/RST**, release BOOT
-   - (some boards do this automatically)
-4. Run:
+## Step 2 — Install esptool
 
 ```bash
-esptool.py --chip esp32 --port /dev/ttyUSB0 --baud 460800 \
+pip install esptool
+```
+
+---
+
+## Step 3 — Flash
+
+Replace `FOLDER` with your chip folder from the table above (e.g. `esp32/esp32/`).
+Replace `PORT` with your serial port:
+- **macOS**: `/dev/cu.usbserial-XXXX` (find with `ls /dev/cu.*`)
+- **Linux**: `/dev/ttyUSB0` or `/dev/ttyACM0`
+- **Windows**: `COM3` (check Device Manager)
+
+```bash
+cd FOLDER
+
+esptool.py --chip auto --port PORT --baud 460800 \
   write_flash \
   0x1000  bootloader.bin \
   0x8000  partition-table.bin \
   0x10000 csight_esp32.bin
 ```
 
-> Replace `/dev/ttyUSB0` with your actual port:
-> - **macOS**: `/dev/cu.usbserial-XXXX`
-> - **Windows**: `COM3` (check Device Manager)
-> - **Linux**: `/dev/ttyUSB0` or `/dev/ttyACM0`
+Or using the included flash_args file:
 
-5. Press **EN/RST** to boot after flashing
-
----
-
-## Wiring to Flipper Zero
-
-| ESP32 Pin | Flipper GPIO | Notes               |
-|-----------|--------------|---------------------|
-| TX (17)   | Pin 14 (RX)  | Default — adjustable in app |
-| RX (16)   | Pin 13 (TX)  | Default — adjustable in app |
-| GND       | GND          | Required            |
-| 3.3V      | 3.3V         | Or use USB power    |
-
-> Custom pins can be configured inside the CSIght app under Board → Custom...
-
----
-
-## Recovery (if something goes wrong)
-
-The ESP32 bootloader lives at `0x1000`. As long as you haven't overwritten that partition with garbage, the board is recoverable.
-
-**Hard recovery:**
 ```bash
-# Erase flash completely
-esptool.py --chip esp32 --port /dev/ttyUSB0 erase_flash
-
-# Then re-flash from scratch using the command above
+esptool.py --chip auto --port PORT write_flash @flash_args
 ```
 
-This resets the ESP32 to factory state and you can flash again cleanly.
+Press **EN/RST** on the board after flashing to boot.
 
 ---
 
-## Flipper FAP Install
+## Step 4 — Wire to Flipper Zero
 
-1. Copy the `.fap` file matching your Flipper firmware to:
-   `SD Card/apps/GPIO/csight.fap`
-2. Launch from **Apps → GPIO → CSIght**
+| ESP32 pin | Flipper GPIO | Notes |
+|-----------|-------------|-------|
+| TX (default 17) | Pin 14 | Configurable in app |
+| RX (default 16) | Pin 13 | Configurable in app |
+| GND | GND | Required |
+| 3.3V or 5V | 3.3V or 5V | Power the board BEFORE launching app |
+
+> ⚠️ **Power the ESP32 board BEFORE launching CSIght on the Flipper.** Launching the app without the board powered will cause the Flipper to crash. CSIght will warn you about this on first launch.
 
 ---
 
-## First run
+## Step 5 — Install the FAP
 
-On first launch CSIght will:
-1. Play boot animation
-2. Send handshake to ESP32
-3. Show detected chip + CSI compatibility
-4. Ask you to confirm board preset (or set custom pins)
-5. Save config to SD — you won't need to do this again
+Copy the `.fap` matching your Flipper firmware from the `flipper/` folder:
 
-Settings are stored at: `SD Card/apps_data/csight/config.bin`
+```
+SD Card/apps/GPIO/csight.fap
+```
+
+Launch from **Apps → GPIO → CSIght**.
+
+---
+
+## Recovery
+
+If flashing fails or the board seems bricked:
+
+```bash
+# Erase flash completely
+esptool.py --chip auto --port PORT erase_flash
+
+# Then re-flash from scratch
+```
+
+This resets the board to factory state. The bootloader is almost never truly bricked.
+
+---
+
+## 3-in-1 board users (CC1101 + ESP32 + nRF24)
+
+Your board uses shared GPIO. Default pins 16/17 should be free for UART but if you experience issues use the Custom pin option in CSIght to change them. Your SPI toggle switch position does not affect CSIght — it only needs UART.
