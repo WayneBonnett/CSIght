@@ -138,6 +138,25 @@ void csi_handler_init(csi_motion_cb_t motion_cb, csi_waterfall_cb_t waterfall_cb
     s_frame_count   = 0;
     s_baseline_done = false;
 
+    // ── CSI config varies significantly between chip families ─────────────────
+    // ESP32-C6 and C61 use wifi_csi_acquire_config_t (renamed + different fields)
+    // All other targets use wifi_csi_config_t with lltf_en/htltf_en etc
+#if CONFIG_IDF_TARGET_ESP32C6 || CONFIG_IDF_TARGET_ESP32C61
+    wifi_csi_acquire_config_t csi_cfg = {
+        .enable              = 1,
+        .acquire_csi_legacy  = 1,   // L-LTF (legacy preamble)
+        .acquire_csi_ht20    = 1,   // HT20 packets
+        .acquire_csi_ht40    = 0,   // HT40 — disable to keep buf size predictable
+        .acquire_csi_su      = 0,
+        .acquire_csi_mu      = 0,
+        .acquire_csi_dcm     = 0,
+        .acquire_csi_beamformed = 0,
+        .acquire_csi_he_stbc = 0,
+        .val_scale_cfg       = 0,
+        .dump_ack_en         = 0,
+    };
+#else
+    // ESP32, ESP32-S2, ESP32-S3, ESP32-C3 all use this struct
     wifi_csi_config_t csi_cfg = {
         .lltf_en           = true,
         .htltf_en          = true,
@@ -145,12 +164,9 @@ void csi_handler_init(csi_motion_cb_t motion_cb, csi_waterfall_cb_t waterfall_cb
         .ltf_merge_en      = true,
         .channel_filter_en = false,
         .manu_scale        = false,
-#if CONFIG_IDF_TARGET_ESP32
-        // Original ESP32 uses legacy CSI config fields
-        .rx_ant_num        = 1,
-        .rx_ant_set        = 0,
-#endif
     };
+#endif
+
     ESP_ERROR_CHECK(esp_wifi_set_csi_config(&csi_cfg));
     ESP_ERROR_CHECK(esp_wifi_set_csi_rx_cb(wifi_csi_cb, NULL));
     ESP_ERROR_CHECK(esp_wifi_set_csi(true));
