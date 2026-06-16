@@ -29,13 +29,30 @@ const BoardPreset BOARD_PRESETS[] = {
     { "XIAO ESP32-S3",            43, 44,  2 },
     { "XIAO ESP32-C6",            16, 17,  2 },
 
+    // ── Popular mini/cheap boards ─────────────────────────────────────────────
+    { "ESP32-C3 Super Mini",      21, 20,  2 },  // non-standard but very popular
+    { "ESP32-C3 Mini (generic)",  21, 20,  2 },
+    { "ESP32-S3 Zero",            43, 44,  2 },  // Waveshare
+    { "ESP32-S3 Mini",            43, 44,  2 },  // LOLIN
+    { "ESP32 Nano (Arduino)",      1,  3,  1 },
+    { "TTGO T-Display",            1,  3,  1 },  // ESP32 with screen
+    { "TTGO T-Display S3",        43, 44,  2 },  // ESP32-S3 with screen
+    { "Lilygo T-Display S3",      43, 44,  2 },
+    { "Lilygo T7 S3",             43, 44,  2 },
+    { "Lilygo T-OI Plus (C3)",    21, 20,  2 },
+    { "DFRobot Beetle ESP32-C3",  21, 20,  2 },
+    { "FireBeetle 2 ESP32-S3",    43, 44,  2 },
+    { "ESP32-CAM (AI-Thinker)",    1,  3,  1 },
+
     // ── Adafruit ──────────────────────────────────────────────────────────────
     { "Adafruit ESP32 Feather",    1,  3,  1 },
     { "Adafruit QT Py ESP32-S3",  43, 44,  2 },
     { "Adafruit QT Py ESP32-C3",  21, 20,  2 },
+    { "Adafruit Feather ESP32-S3",43, 44,  2 },
 
     // ── SparkFun ──────────────────────────────────────────────────────────────
     { "SparkFun ESP32 Thing",      1,  3,  1 },
+    { "SparkFun ESP32 Thing Plus", 1,  3,  1 },
     { "SparkFun ESP32-S2 Thing",   0,  0,  0 },
     { "SparkFun C6 Qwiic Pocket",  16, 17,  2 },
 
@@ -44,26 +61,32 @@ const BoardPreset BOARD_PRESETS[] = {
     { "LOLIN D32 Pro",             1,  3,  1 },
     { "WEMOS D1 Mini32",           1,  3,  1 },
     { "LOLIN S3",                 43, 44,  2 },
+    { "LOLIN S3 Mini",            43, 44,  2 },
     { "LOLIN C3 Mini",            21, 20,  2 },
-
-    // ── AI-Thinker ────────────────────────────────────────────────────────────
-    { "AI-Thinker ESP32-CAM",      1,  3,  1 },
-    { "NodeMCU-32S",               1,  3,  1 },
 
     // ── M5Stack ───────────────────────────────────────────────────────────────
     { "M5Stack Core",              1,  3,  1 },
     { "M5Stack Core2",             1,  3,  1 },
+    { "M5Stack CoreS3",           43, 44,  2 },
     { "M5Stamp C3",               21, 20,  2 },
     { "M5Stamp S3",               43, 44,  2 },
+    { "M5StickC Plus",             1,  3,  1 },
+    { "M5StickC Plus2",            1,  3,  1 },
+    { "M5AtomS3",                 43, 44,  2 },
 
     // ── Unexpected Maker ──────────────────────────────────────────────────────
     { "TinyS3",                   43, 44,  2 },
     { "FeatherS3",                43, 44,  2 },
     { "ProS3",                    43, 44,  2 },
+    { "NanoS3",                   43, 44,  2 },
 
     // ── Olimex ────────────────────────────────────────────────────────────────
     { "Olimex ESP32-EVB",          1,  3,  1 },
     { "Olimex ESP32-S3-DevKit",   43, 44,  2 },
+
+    // ── AI-Thinker / NodeMCU ──────────────────────────────────────────────────
+    { "NodeMCU-32S",               1,  3,  1 },
+    { "NodeMCU ESP-C3-32S",       21, 20,  2 },
 
     // ── Custom ────────────────────────────────────────────────────────────────
     { "Custom...",                 0,  0,  0 },
